@@ -22,8 +22,8 @@
 """
 from PyQt5.QtCore import Qt
 from qgis.PyQt import uic
-from qgis.PyQt.QtCore import Qt, QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap
+from qgis.PyQt.QtCore import Qt, QSettings, QTranslator, QCoreApplication, QUrl
+from qgis.PyQt.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap, QDesktopServices
 from qgis.PyQt.QtWidgets import QApplication, QAction, QFileDialog, QMessageBox, QTableWidgetItem
 from qgis.core import QgsMapLayerProxyModel, Qgis, QgsProject, QgsMapLayer, QgsRasterLayer, QgsVectorLayer
 import qgis.utils
@@ -54,9 +54,23 @@ from .resources import *
 import numpy as np
 import subprocess
 import sys
+import io
 
 from osgeo import ogr, gdal, gdalconst
 from functools import wraps
+
+# Ensure sys.stderr is file-like: some hosts or wrappers can set it to None
+# which causes libraries (numpy, etc.) to fail when calling sys.stderr.write
+if getattr(sys, 'stderr', None) is None:
+    try:
+        sys.stderr = io.StringIO()
+    except Exception:
+        # As a last resort, create a minimal object with write method
+        class _StderrFallback:
+            def write(self, *args, **kwargs):
+                pass
+
+        sys.stderr = _StderrFallback()
 
 import matplotlib.pyplot as plt
 # import cv2
@@ -206,13 +220,13 @@ class Hidropixel:
 
         self._connect_buttons()
 
-        # Cria pasta para salvar os arquivos temporários
-        os.makedirs(os.path.join(self.diretorio_atual,
-                    'temp/maps'), exist_ok=True)
-        os.makedirs(os.path.join(self.diretorio_atual,
-                    'temp/hydrographs'), exist_ok=True)
-        os.makedirs(os.path.join(self.diretorio_atual,
-                    'temp/tv_for_each_poi'), exist_ok=True)
+        # # Cria pasta para salvar os arquivos temporários
+        # os.makedirs(os.path.join(self.diretorio_atual,
+        #             'temp/maps'), exist_ok=True)
+        # os.makedirs(os.path.join(self.diretorio_atual,
+        #             'temp/hydrographs'), exist_ok=True)
+        # os.makedirs(os.path.join(self.diretorio_atual,
+        #             'temp/tv_for_each_poi'), exist_ok=True)
 
     def _connect_buttons(self):
         # Conexoes da aba Flow Travel Time
@@ -1092,38 +1106,38 @@ class Hidropixel:
                     "-------------------------------------------------\n")
                 arquivo_txt.write("TUH peak discharge per pixel:\n")
                 arquivo_txt.write(
-                    f"={os.path.join(self.dlg_flow_rout.le_3_pg1.text(),self.dlg_flow_rout.le_1_pg4.text()) if self.dlg_flow_rout.le_3_pg1.text()!= '' and self.dlg_flow_rout.le_1_pg4.text()!= '' else self.dlg_flow_rout.le_1_pg4.text()}\n")
+                    f"=")
                 arquivo_txt.write("Selected:\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.ch_1_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("Add:\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.ch_7_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("Select unit:\n")
                 arquivo_txt.write("(L/s)\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.rb_1_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("(m³/s)\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.rb_2_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("TUH base time per pixel (min):\n")
                 arquivo_txt.write(
-                    f"={os.path.join(self.dlg_flow_rout.le_3_pg1.text(),self.dlg_flow_rout.le_2_pg4.text()) if self.dlg_flow_rout.le_3_pg1.text()!= '' and self.dlg_flow_rout.le_2_pg4.text()!= '' else self.dlg_flow_rout.le_2_pg4.text()}\n")
+                    f"=")
                 arquivo_txt.write("Selected:\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.ch_2_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("Add:\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.ch_8_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("Map of TUH base time (min):\n")
                 arquivo_txt.write(
-                    f"={os.path.join(self.dlg_flow_rout.le_3_pg1.text(),self.dlg_flow_rout.le_3_pg4.text()) if self.dlg_flow_rout.le_3_pg1.text()!= '' and self.dlg_flow_rout.le_3_pg4.text()!= '' else self.dlg_flow_rout.le_3_pg4.text()}\n")
+                    f"=")
                 arquivo_txt.write("Selected:\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.ch_3_pg4.isChecked()}\n")
+                    f"=False")
                 arquivo_txt.write("Add:\n")
                 arquivo_txt.write(
-                    f"={self.dlg_flow_rout.ch_9_pg4.isChecked()}\n")
+                    f"=False\n")
                 arquivo_txt.write("Resulting peak discharge per pixel:\n")
                 arquivo_txt.write(
                     f"={os.path.join(self.dlg_flow_rout.le_3_pg1.text(),self.dlg_flow_rout.le_4_pg4.text()) if self.dlg_flow_rout.le_3_pg1.text()!= '' and self.dlg_flow_rout.le_4_pg4.text()!= '' else self.dlg_flow_rout.le_4_pg4.text()}\n")
@@ -1479,28 +1493,28 @@ class Hidropixel:
                     # Le os arquivos Run
 
                     # Output1
-                    self.dlg_flow_rout.le_1_pg4.setText(str(values[11]))
-                    self.dlg_flow_rout.ch_1_pg4.setChecked(
-                        str(values[12]) == 'True')
-                    self.dlg_flow_rout.ch_7_pg4.setChecked(
-                        str(values[13]) == 'True')
-                    # Escolha da unidade (m³/a ou L/s)
-                    self.dlg_flow_rout.rb_1_pg4.setChecked(
-                        str(values[14]) == 'True')
-                    self.dlg_flow_rout.rb_2_pg4.setChecked(
-                        str(values[15]) == 'True')
-                    # Output2
-                    self.dlg_flow_rout.le_2_pg4.setText(str(values[16]))
-                    self.dlg_flow_rout.ch_2_pg4.setChecked(
-                        str(values[17]) == 'True')
-                    self.dlg_flow_rout.ch_8_pg4.setChecked(
-                        str(values[18]) == 'True')
-                    # Output3
-                    self.dlg_flow_rout.le_3_pg4.setText(str(values[19]))
-                    self.dlg_flow_rout.ch_3_pg4.setChecked(
-                        str(values[20]) == 'True')
-                    self.dlg_flow_rout.ch_9_pg4.setChecked(
-                        str(values[21]) == 'True')
+                    # self.dlg_flow_rout.le_1_pg4.setText(str(values[11]))
+                    # self.dlg_flow_rout.ch_1_pg4.setChecked(
+                    #     str(values[12]) == 'True')
+                    # self.dlg_flow_rout.ch_7_pg4.setChecked(
+                    #     str(values[13]) == 'True')
+                    # # Escolha da unidade (m³/a ou L/s)
+                    # self.dlg_flow_rout.rb_1_pg4.setChecked(
+                    #     str(values[14]) == 'True')
+                    # self.dlg_flow_rout.rb_2_pg4.setChecked(
+                    #     str(values[15]) == 'True')
+                    # # Output2
+                    # self.dlg_flow_rout.le_2_pg4.setText(str(values[16]))
+                    # self.dlg_flow_rout.ch_2_pg4.setChecked(
+                    #     str(values[17]) == 'True')
+                    # self.dlg_flow_rout.ch_8_pg4.setChecked(
+                    #     str(values[18]) == 'True')
+                    # # Output3
+                    # self.dlg_flow_rout.le_3_pg4.setText(str(values[19]))
+                    # self.dlg_flow_rout.ch_3_pg4.setChecked(
+                    #     str(values[20]) == 'True')
+                    # self.dlg_flow_rout.ch_9_pg4.setChecked(
+                    #     str(values[21]) == 'True')
 
                     # Output4
                     self.dlg_flow_rout.le_4_pg4.setText(str(values[22]))
@@ -2420,7 +2434,7 @@ class Hidropixel:
         """Esta funcao le o arquivo shp com os POIs e gera a linha e coluna de cada ponto com base na matriz da bacia hidrografica"""
         # Abrir shapefile
         ds_shp = ogr.Open(
-            self.shp_list_g[self.dlg_flow_tt.cb_8_pg2.currentIndex()])
+            self.dlg_flow_tt.cb_8_pg2.currentLayer().source())
         layer = ds_shp.GetLayer()
         gt = self.rdc_vars.geotransform
 
@@ -2609,7 +2623,7 @@ class Hidropixel:
             if exc_rain_exe.returncode == 0:
                 self.dlg_exc_rain.progressBar.setValue(60)
 
-                # move o arquivo txt contendo o hietograma de chuva excedente para o diretorio informado
+                # move o arquivo bin contendo o hietograma de chuva excedente para o diretorio informado
                 if self.dlg_exc_rain.ch_6_pg4.isChecked() and os.path.isfile(self.output6_exec_rain) == True:
                     # Verifica se o user enviou o diretorio do arquivo ou apenas o nome (nesse caso, working folder != '')
                     is_basename = self.is_basename_only(
@@ -2625,7 +2639,7 @@ class Hidropixel:
                                     self.dlg_exc_rain.le_6_pg4.text())
 
                     # Converte arquivos de saida de .rst ascii para geotif
-                    if os.path.isfile(self.output4_exec_rain) == True and os.path.isfile(self.output5_exec_rain) == True:
+                    if os.path.isfile(self.output5_exec_rain) == True:
                         if self.dlg_exc_rain.ch_1_pg4.isChecked():
                             output_path = self.caminho_completo(
                                 self.dlg_exc_rain.le_3_pg1.text(), self.dlg_exc_rain.le_1_pg4.text())
@@ -2695,6 +2709,17 @@ class Hidropixel:
                         self.dlg_exc_rain.pg_par_exc_rain.setEnabled(True)
                         self.dlg_exc_rain.te_logg.clear()
                         break
+
+                    # Adiciona as informacao ao text edit
+                    self.dlg_exc_rain.te_logg.append(
+                        'Operation completed successfully!')
+                    QMessageBox.information(
+                        None, "Information", "Operation completed successfully!", )
+                    self.dlg_exc_rain.progressBar.setValue(100)
+                    self.dlg_exc_rain.pg_log_exc_rain.setEnabled(False)
+                    self.dlg_exc_rain.pg_par_exc_rain.setEnabled(True)
+                    self.dlg_exc_rain.te_logg.clear()
+                    break
                 else:
                     # Finaliza execucao do programa e elimina os arquivos temporarios criados
                     self.apaga_arquivos_temp()
@@ -3072,6 +3097,39 @@ class Hidropixel:
             self.apaga_arquivos_temp()
             break
 
+    def move_hidrograma_POI(self):
+        """Esta funcao organiza o envio dos hidrogramas gerados para cada POI para o diretorio informado pelo user"""
+        try:
+            if (self.dlg_flow_rout.le_3_pg2.text() != '' or self.dlg_flow_rout.le_3_pg2.text() != None) and self.dlg_flow_rout.ch_13_pg4.isChecked() == True:
+                hydrograohs_dir = self.diretorio_atual + r'\temp\hydrographs'
+                os.chdir(hydrograohs_dir)
+
+                arquivos_tif = glob.glob('*.txt')
+
+                # Move cada hidrograma para a pasta indicada
+                for file in arquivos_tif:
+                    file_base_name = os.path.basename(file)
+                    new_file_dir = os.path.join(
+                        self.dlg_flow_rout.le_9_pg4.text(), file_base_name)
+                    shutil.copy2(file, new_file_dir)
+
+        except OSError as e:
+            if e.winerror == 123:  # Caminho invalido ou sintaxe incorreta
+                QMessageBox.critical(
+                    self.dlg_flow_rout,
+                    "Invalid Directory",
+                    "Provide a valid directory containing the travel times for each POI."
+                )
+                return False
+            else:
+                # Caso seja outro tipo de erro de sistema
+                QMessageBox.critical(
+                    self.dlg_flow_rout,
+                    "System Error",
+                    f"Unexpected system error:\n{str(e)}"
+                )
+                return False
+
     def run_process_flow_rout(self):
         """Esta funcao organiza os arquivos de entrada para as rotinas em vb apartir do plugin qgis"""
         # Captura diretorio dos arquivo txt (pasta temp)
@@ -3436,6 +3494,9 @@ class Hidropixel:
                     if self.dlg_flow_rout.ch_12_pg4.isChecked() == True:
                         self.plot_hidrogramas_e_metricas()
 
+                    # move hidrogramas por POI para a pasta indicada pelo user
+                    self.move_hidrograma_POI()
+
                     # Adiciona as informacao ao text edit
                     self.dlg_flow_rout.te_logg.append(
                         'Operation completed successfully!')
@@ -3557,7 +3618,7 @@ class Hidropixel:
             self.dlg_exc_rain.label_59.setEnabled(True)
             self.dlg_exc_rain.le_3_pg4.setEnabled(True)
             self.dlg_exc_rain.tbtn_pg4_3.setEnabled(True)
-            self.dlg_exc_rain.ch_9_pg4.setEnabled(False)
+            self.dlg_exc_rain.ch_9_pg4.setEnabled(True)
 
         else:
             # ouput 3
@@ -3565,6 +3626,20 @@ class Hidropixel:
             self.dlg_exc_rain.le_3_pg4.setEnabled(False)
             self.dlg_exc_rain.tbtn_pg4_3.setEnabled(False)
             self.dlg_exc_rain.ch_9_pg4.setEnabled(False)
+
+        if self.dlg_exc_rain.ch_4_pg4.isChecked():
+            # ouput 4
+            self.dlg_exc_rain.label_72.setEnabled(True)
+            self.dlg_exc_rain.le_4_pg4.setEnabled(True)
+            self.dlg_exc_rain.tbtn_pg4_4.setEnabled(True)
+            self.dlg_exc_rain.ch_10_pg4.setEnabled(True)
+
+        else:
+            # ouput 4
+            self.dlg_exc_rain.label_72.setEnabled(False)
+            self.dlg_exc_rain.le_4_pg4.setEnabled(False)
+            self.dlg_exc_rain.tbtn_pg4_4.setEnabled(False)
+            self.dlg_exc_rain.ch_10_pg4.setEnabled(False)
 
     def ativiva_objetos_run_flow_rout(self):
         """Ativa objetos da pagina run do modulo flow routing e ajusta extensoes sugeridas."""
@@ -3835,6 +3910,20 @@ class Hidropixel:
             self.dlg_flow_tt.btn13_pg3.setEnabled(False)
             self.dlg_flow_tt.label_112.setEnabled(False)
 
+    def open_pdf_help(self):
+        # Caminho absoluto do PDF dentro do plugin
+        pdf_path = os.path.join(self.plugin_dir, "docs",
+                                "Q-Hidropixel_user_manual.pdf")
+
+        if not os.path.exists(pdf_path):
+            self.iface.messageBar().pushWarning(
+                "File not found",
+            )
+            return
+
+        # Abre o PDF usando o visualizador padrão do sistema
+        QDesktopServices.openUrl(QUrl.fromLocalFile(pdf_path))
+
     def run(self):
         """Esta e a funcao principal do plugin, todas as funcionalidades propostas anteriormente serao efetivadas na funcao run"""
         # Ensure DPI scaling attributes are set (safe to call repeatedly)
@@ -3917,6 +4006,8 @@ class Hidropixel:
                     lambda: self.dlg_flow_rout.show())
                 self.dlg_flow_rout.btn_config.setStyleSheet(
                     self.highlighted_style)
+                self.dlg_hidropixel.btn_help.clicked.connect(
+                    lambda: self.open_pdf_help())
             except Exception:
                 pass
 
@@ -4270,6 +4361,8 @@ class Hidropixel:
             self.dlg_exc_rain.ch_2_pg4.toggled.connect(
                 lambda: self.ativiva_objetos_run_exc_rainf())
             self.dlg_exc_rain.ch_3_pg4.toggled.connect(
+                lambda: self.ativiva_objetos_run_exc_rainf())
+            self.dlg_exc_rain.ch_4_pg4.toggled.connect(
                 lambda: self.ativiva_objetos_run_exc_rainf())
 
             self.dlg_exc_rain.tbtn_pg4_1.clicked.connect(
