@@ -107,7 +107,7 @@ Complete documentation, including:
 - Data preparation guidelines
 - Interpretation of results
 
-is available in the **[Q-Hidropixel User Manual (PDF)](https://1drv.ms/b/c/82289340b7eb834a/IQAGbJ50HEomR7B4EjbS3RBwAf7rpinK3rTqWCTl-Cv7H68?e=5DGcO3)**.
+is available in the **[Q-Hidropixel User Manual (PDF)](https://github.com/HidropixelModel/Q-Hidropixel/tree/f7d881e0eb9cd99719aef649f9daa69884c4ed77/docs)**.
 
 ---
 
